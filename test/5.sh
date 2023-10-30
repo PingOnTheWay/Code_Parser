@@ -5,4 +5,4 @@
 #SBATCH --ntasks-per-node=1
 
 export LD_LIBRARY_PATH="/usr/local_rwth/sw/python/3.8.7/x86_64/lib/:${LD_LIBRARY_PATH}"
-srun /usr/local_rwth/sw/python/3.8.7/x86_64/bin/python3.8 test/5.py
+srun /usr/local_rwth/sw/python/3.8.7/x86_64/bin/python3.8 /home/hr546787/Code_Parser/test/5.py

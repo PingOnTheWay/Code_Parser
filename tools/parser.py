@@ -5,6 +5,8 @@ import tools.ScriptsGenerator as SG
 import pickle
 import copy
 from collections import defaultdict
+import random
+import re
 
 # Import some libraries that i need
 import_libaries = "import sys\nimport pickle\n"
@@ -17,6 +19,11 @@ tree_nodes = []
 forloop_nodes = []
 loops = []
 if_while_nodes = []
+sign = random.randint(10000, 1000000)
+
+def extract_numbers(s):
+    numbers = re.findall(r'\d+', s)
+    return '-'.join(numbers)
 
 class Loop(ast.NodeVisitor):
     def __init__(self, lineno:int, end_lineno:int, variable:str, values:list) -> None:
@@ -123,6 +130,8 @@ def build_dependency_tree(list_for_dependency):
                 if child not in tree[parent]:  # Avoid duplicate children
                     tree[parent].append(child)
     tree = dict(tree)
+    # Remove self-dependencies
+    tree = {k: v for k, v in tree.items() if not (len(v) == 1 and v[0] == k)}
     # Initialize an empty set to keep track of visited nodes
     visited = set()
 
@@ -132,7 +141,6 @@ def build_dependency_tree(list_for_dependency):
         tree[parent] = [child for child in tree[parent] if child not in visited]
         # Update the visited set
         visited.update(tree[parent])
-    print(tree)
     return tree
 
 def generate_scripts(nodes):
@@ -152,10 +160,10 @@ def generate_scripts(nodes):
         if isinstance(node, ast.Assign):
             # generate_python_script(arr, str(index), pos)
             variable = check_child_node_type(node)
-            SG.generate_python_script(import_nodes, arr, str(index), variable, pos)
+            SG.generate_python_script(import_nodes, arr, str(index), sign, variable, pos)
         elif isinstance(node, (ast.If, ast.While)):
             variable, targets, orelse_targets = extract_variables_from_code(node)
-            input_codes = SG.generate_input_code(variable)
+            input_codes = SG.generate_input_code(variable, sign)
             new_node = process_node(node, targets, orelse_targets)
             new_node = ast.fix_missing_locations(new_node)
             with open("test/" + str(index) + ".py", "w") as f:
@@ -169,12 +177,9 @@ def generate_scripts(nodes):
     file_with_dependency = set(tree.keys())
     for key in tree.keys():
         file_with_dependency |= set(tree[key])
-    print(file_with_dependency)
-    print(index)
     func(list_for_dependency,tree, '0')
     global job_index
     for file_name in range(1, index):
-        print(file_name)
         if not str(file_name) in file_with_dependency:
             job_index += 1
             func(list_for_dependency,tree, str(file_name))
@@ -191,7 +196,7 @@ def generate_slurm_script(file_name):
 export LD_LIBRARY_PATH="/usr/local_rwth/sw/python/3.8.7/x86_64/lib/:${LD_LIBRARY_PATH}"
 srun /usr/local_rwth/sw/python/3.8.7/x86_64/bin/python3.8 '''
     with open(f'test/{file_name}.sh', 'w') as f:
-        f.write(slurm_script + f'test/{file_name}.py')
+        f.write(slurm_script + f'/home/hr546787/Code_Parser/test/{file_name}.py')
 
 
 job_index = 0
@@ -212,7 +217,7 @@ def func(list_for_dependency, tree, file_name='0', dependency='', count=0):
                     values = loop.values
                     break
             if (not isInForLoop) and dependency == '':
-                slurm_script_for_all += f'JOB_ID_{job_index}=$(sbatch --nodes=1 --ntasks=1 --parsable {file_name}.sh)\n'
+                slurm_script_for_all += f'JOB_ID_{job_index}=$(sbatch --nodes=1 --ntasks=1 --parsable {file_name}.sh {sign} NoDependecy {job_index})\n'
                 if file_name in list(tree.keys()):
                     dependency += 'JOB_ID_' + str(job_index)
                     for child in tree[file_name]:
@@ -220,7 +225,7 @@ def func(list_for_dependency, tree, file_name='0', dependency='', count=0):
                         job_index += 1
                         func(list_for_dependency, tree,child, dependency)
             elif (not isInForLoop) and dependency != '':
-                slurm_script_for_all += f'JOB_ID_{job_index}=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:${dependency} {file_name}.sh)\n'
+                slurm_script_for_all += f'JOB_ID_{job_index}=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:${dependency} {file_name}.sh {sign} {extract_numbers(dependency)} {job_index})\n'
                 if file_name in list(tree.keys()):
                     dependency += ',$JOB_ID_' + str(job_index)
                     for child in tree[file_name]:
@@ -229,7 +234,7 @@ def func(list_for_dependency, tree, file_name='0', dependency='', count=0):
             elif isInForLoop and dependency == '':
                 if variable in ele['dependences']:
                     while(count <= len(values) - 1):
-                        slurm_script_for_all += f'JOB_ID_{job_index}=$(sbatch --nodes=1 --ntasks=1 --parsable {file_name}.sh {values[count]})\n'
+                        slurm_script_for_all += f'JOB_ID_{job_index}=$(sbatch --nodes=1 --ntasks=1 --parsable {file_name}.sh {sign} {extract_numbers(dependency)} {job_index} {values[count]})\n'
                         count += 1
                         if file_name in list(tree.keys()):
                             dependency += ',$JOB_ID_' + str(job_index)
@@ -240,7 +245,7 @@ def func(list_for_dependency, tree, file_name='0', dependency='', count=0):
                         
                 else:
                     while(count <= len(values) - 1):
-                        slurm_script_for_all += f'JOB_ID_{job_index}=$(sbatch --nodes=1 --ntasks=1 --parsable {file_name}.sh)\n'
+                        slurm_script_for_all += f'JOB_ID_{job_index}=$(sbatch --nodes=1 --ntasks=1 --parsable {file_name}.sh {sign} {extract_numbers(dependency)} {job_index})\n'
                         count += 1
                         if file_name in list(tree.keys()):
                             dependency += ',$JOB_ID_' + str(job_index)
@@ -252,7 +257,7 @@ def func(list_for_dependency, tree, file_name='0', dependency='', count=0):
             elif isInForLoop and dependency != '':
                 if variable in ele['dependences']:
                     while(count <= len(values) - 1):
-                        slurm_script_for_all += f'JOB_ID_{job_index}=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:${dependency} {file_name}.sh {values[count]})\n'
+                        slurm_script_for_all += f'JOB_ID_{job_index}=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:${dependency} {file_name}.sh {sign} {extract_numbers(dependency)} {job_index} {values[count]})\n'
                         count += 1
                         if file_name in list(tree.keys()):
                             temp =dependency + ',$JOB_ID_' + str(job_index)
@@ -263,7 +268,7 @@ def func(list_for_dependency, tree, file_name='0', dependency='', count=0):
                             job_index += 1
                     job_index -= 1
                 else:
-                    slurm_script_for_all += f'JOB_ID_{job_index}=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:${dependency} {file_name}.sh)\n'
+                    slurm_script_for_all += f'JOB_ID_{job_index}=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:${dependency} {file_name}.sh {sign} {extract_numbers(dependency)} {job_index})\n'
                     if file_name in list(tree.keys()):
                         dependency += ',$JOB_ID_' + str(job_index)
                         job_index += 1
@@ -366,6 +371,27 @@ def parse_if_and_while(node):
     pass
 
 def add_print_to_block(block, name):
+    assign_node = ast.Assign(
+        targets=[
+            ast.Name(id='job_index', ctx=ast.Store())
+        ],
+        value=ast.Call(
+            func=ast.Name(id='int', ctx=ast.Load()),
+            args=[
+                ast.Subscript(
+                    value=ast.Attribute(
+                        value=ast.Name(id='sys', ctx=ast.Load()),
+                        attr='argv',
+                        ctx=ast.Load()
+                    ),
+                    slice=ast.Constant(value=3),
+                    ctx=ast.Load()
+                )
+            ],
+            keywords=[]
+        )
+    )
+    block.append(assign_node)  # add this assign_node to the end of code block
     # create a new with_node
     with_node = ast.With(
         items=[
@@ -373,7 +399,17 @@ def add_print_to_block(block, name):
                 context_expr=ast.Call(
                     func=ast.Name(id='open', ctx=ast.Load()),
                     args=[
-                        ast.Str(s=f'pkl/{name}.pkl'),
+                        ast.JoinedStr(
+                            values=[
+                                ast.Str(s=f'pkl/{name}_{sign}_'),
+                                ast.FormattedValue(
+                                    value=ast.Name(id='job_index', ctx=ast.Load()),
+                                    conversion=-1,
+                                    format_spec=None
+                                ),
+                                ast.Str(s='.pkl')
+                            ]
+                        ),
                         ast.Str(s='wb')
                     ],
                     keywords=[]
