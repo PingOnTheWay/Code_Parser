@@ -1,0 +1,13 @@
+case_id,activity,timestamp
+1,Create Order,2024-04-01 09:00:00
+1,Review Order,2024-04-01 10:00:00
+1,Ship,2024-04-01 15:00:00
+1,Receive,2024-04-02 09:00:00
+2,Create Order,2024-04-01 09:30:00
+2,Review Order,2024-04-01 11:00:00
+2,Ship,2024-04-01 16:00:00
+2,Receive,2024-04-02 10:00:00
+3,Create Order,2024-04-02 09:00:00
+3,Review Order,2024-04-02 09:45:00
+3,Ship,2024-04-02 13:00:00
+3,Receive,2024-04-03 11:00:00

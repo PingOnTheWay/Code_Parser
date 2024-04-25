@@ -1,9 +1,9 @@
 import pm4py
+import pandas as pd
 from pm4py.objects.conversion.log import converter as log_converter
-from pm4py.objects.log.importer.csv import importer as csv_importer
 from pm4py.algo.discovery.alpha import algorithm as alpha_miner
 from pm4py.visualization.petri_net import visualizer as pn_visualizer
-from pm4py.statistics.traces.log import case_statistics
+from pm4py.statistics.traces.generic.log import case_statistics
 from pm4py.util import constants
 from pm4py.statistics.start_activities.log import get as start_activities
 from pm4py.statistics.end_activities.log import get as end_activities
@@ -11,13 +11,11 @@ from datetime import timedelta
 import numpy as np
 
 # Step 1: Import data from a CSV file
-log_csv = csv_importer.apply('your_log_file.csv')
+dataframe = pd.read_csv('event_log/Sample_Process_Mining.csv', sep=',')
 
 # Step 2: Convert the CSV data to an event log object
-parameters = {
-    log_converter.Variants.TO_EVENT_LOG.value.Parameters.CASE_ID_KEY: 'case_id_column_name'
-}
-event_log = log_converter.apply(log_csv, parameters=parameters, variant=log_converter.Variants.TO_EVENT_LOG)
+dataframe = pm4py.format_dataframe(dataframe, case_id='case_id', activity_key='activity', timestamp_key='timestamp')
+event_log = pm4py.convert_to_event_log(dataframe)
 
 # Step 3: Discover a process model using Alpha Miner
 net, initial_marking, final_marking = alpha_miner.apply(event_log)
