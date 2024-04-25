@@ -1,7 +1,6 @@
 import pm4py
 
 log = pm4py.read_xes('running-example.xes')
-filtered_log = pm4py.filter_variants_percentage(log, percentage=0.5)
 
 print("Original log size: ")
 

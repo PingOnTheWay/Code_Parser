@@ -289,18 +289,18 @@ def generate_trigger_slurm_script(dependency_list, dependency_map):
         if item.get('for') and item.get('iter'):
             # Handle for loop by creating multiple jobs
             for i, iter_val in enumerate(item['iter']):
-                dep_str = f"--dependency=afterok:{','.join(f'$JOB_ID_{d}' for d in dependencies)}" if dependencies else "NoDependency"
-                command = f'{job_var}_{index + fix}=$({base_command} {dep_str} {index}.sh {sign} {index} {iter_val})'
+                dep_str = f"--dependency=afterok:{','.join(f'$JOB_ID_{d}' for d in dependencies)}" if dependencies else ""
+                command = f'{job_var}_{index + fix}=$({base_command} {dep_str} /home/hr546787/Code_Parser/test/{index}.sh {sign} {index} {iter_val})'
                 fix += 1
                 script_lines.append(command)
         else:
             # Normal job submission
-            dep_str = f"--dependency=afterok:{','.join(f'$JOB_ID_{d}' for d in dependencies)}" if dependencies else "NoDependency"
-            command = f'{job_var}_{index + fix}=$({base_command} {dep_str} {index}.sh {sign} NoDependency {index})'
+            dep_str = f"--dependency=afterok:{','.join(f'$JOB_ID_{d}' for d in dependencies)}" if dependencies else ""
+            command = f'{job_var}_{index + fix}=$({base_command} {dep_str} /home/hr546787/Code_Parser/test/{index}.sh {sign} NoDependency {index})'
             script_lines.append(command)
 
         job_ids.append(job_var)
-
+    script_lines.append(f"sacct -j $SLURM_JOB_ID --format=JobID,Start,End,Elapsed > /home/hr546787/Code_Parser/results/test1/trigger_{sign}_log.log\n")
     return "\n".join(script_lines)
 
 def save_script_to_file(script_content, file_path):
@@ -323,7 +323,6 @@ def create_slurm_script(directory, filename, item, job_index):
     with open(path, 'w') as file:
         file.write("#!/usr/local_rwth/bin/zsh\n")
         file.write(f"#SBATCH --job-name={job_index}\n")
-        file.write("#SBATCH --output=/dev/null\n\n")
 
         # Add Python execution command
         base_command = f"/rwthfs/rz/cluster/home/hr546787/Code_Parser/new_env/bin/python /home/hr546787/Code_Parser/test/{job_index}.py $1 $2 $3"
@@ -333,7 +332,7 @@ def create_slurm_script(directory, filename, item, job_index):
         file.write(f"{command}\n")
         
         # Add SACCT command
-        file.write("sacct -j $SLURM_JOB_ID --format=JobID,Start,End,Elapsed > ${SLURM_JOB_ID}_${job_index}_log.log\n")
+        file.write("sacct -j $SLURM_JOB_ID --format=JobID,Start,End,Elapsed > /home/hr546787/Code_Parser/results/test1/${SLURM_JOB_ID}_$1_log.log\n")
 
 
 
