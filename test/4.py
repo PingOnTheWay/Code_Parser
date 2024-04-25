@@ -1,30 +1,29 @@
-import sys
-import pickle
 import pm4py
-import re, os
-dependency = int(sys.argv[2])
-sign=int(sys.argv[1])
-def find_file(dependency, filename):
-    numbers = re.findall(r'\d+', dependency)
-    processed_string = '-'.join(numbers)
-    indices = (processed_string.split('-'))[::-1]
-    for index in indices:
-        full_path = os.path.join("/home/hr546787/Code_Parser/pkl/", filename + "_" + str(sign) + "_" + str(index) + ".pkl")
-        if os.path.exists(full_path):
-            return index
 
+from pm4py.objects.conversion.log import converter as log_converter
 
-index=find_file(dependency,'goat')
-with open(f'/home/hr546787/Code_Parser/pkl/goat_655973_{index}.pkl', 'rb') as f:
-    goat = pickle.load(f)
+from pm4py.objects.log.importer.csv import importer as csv_importer
 
+from pm4py.algo.discovery.alpha import algorithm as alpha_miner
 
-index=find_file(dependency,'tbr_result')
-with open(f'/home/hr546787/Code_Parser/pkl/tbr_result_655973_{index}.pkl', 'rb') as f:
-    tbr_result = pickle.load(f)
+from pm4py.visualization.petri_net import visualizer as pn_visualizer
 
-while goat:
-    dd = tbr_result
-job_index = int(sys.argv[3])
-with open(f'pkl/dd_655973_{job_index}.pkl', 'wb') as f:
-    pickle.dump(dd, f)
+from pm4py.util import constants
+
+from pm4py.statistics.traces.log import case_statistics
+
+from pm4py.statistics.performance_spectrum import algorithm as performance_spectrum_algo
+
+from pm4py.visualization.performance_spectrum import visualizer as performance_spectrum_visualizer
+
+from datetime import timedelta
+
+import numpy as np
+import re, os, pickle, sys
+sign = sys.argv[1]
+with open(f'/home/hr546787/Code_Parser/pkl/activity_durations_{sign}.pkl', 'rb') as f:
+    activity_durations = pickle.load(f)
+
+activity_durations = activity_durations
+with open(f'/home/hr546787/Code_Parser/pkl/activity_durations_{sign}.pkl', 'wb') as f:
+    pickle.dump(activity_durations, f)

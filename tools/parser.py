@@ -1,8 +1,7 @@
 import ast
 import sys
-sys.path.append("/Users/pingwan/Downloads/B.Sc")
+sys.path.append("/Users/pingwan/Desktop/Thesis_Project/Code_Parser")
 import tools.ScriptsGenerator as SG
-import pickle
 import copy
 from collections import defaultdict
 import random
@@ -21,10 +20,12 @@ loops = []
 if_while_nodes = []
 sign = random.randint(10000, 1000000)
 
+# Function to extract numbers from a string
 def extract_numbers(s):
     numbers = re.findall(r'\d+', s)
     return '-'.join(numbers)
 
+# Class to represent a loop
 class Loop(ast.NodeVisitor):
     def __init__(self, lineno:int, end_lineno:int, variable:str, values:list) -> None:
         self.lineno = lineno
@@ -54,10 +55,13 @@ class Loop(ast.NodeVisitor):
 def sort_nodes_by_lineno(nodes):
     return sorted(nodes, key=lambda node: node.lineno if hasattr(node, 'lineno') else float('inf'), reverse=False)
 
+# Function to read a file as a string
 def read_as_string(file_path):
     with open(file_path) as file:
         return file.read()
-
+    
+# Function to parse the code
+# Three lists are used to store the import, assign and tree nodes respectively
 def parse_code(file_path):
     code = read_as_string(file_path)
     ast_tree = ast.parse(code)
@@ -113,6 +117,8 @@ def parse_assign_node(assign_node, index):
     
 def build_dependency_tree(list_for_dependency):
     # Initialize a tree as a defaultdict
+    for entry in list_for_dependency:
+        print(entry)
     tree = defaultdict(list)
 
     # Create a lookup dictionary from targets to file_name
@@ -144,7 +150,6 @@ def build_dependency_tree(list_for_dependency):
     return tree
 
 def generate_scripts(nodes):
-    total_file = len(nodes)
     index = 0
     pos = ''
     list_for_dependency = []
@@ -174,6 +179,7 @@ def generate_scripts(nodes):
         index += 1
     # print(list_for_dependency)
     tree = build_dependency_tree(list_for_dependency)
+    print(tree)
     file_with_dependency = set(tree.keys())
     for key in tree.keys():
         file_with_dependency |= set(tree[key])
@@ -184,7 +190,7 @@ def generate_scripts(nodes):
             job_index += 1
             func(list_for_dependency,tree, str(file_name))
     
-    print(slurm_script_for_all)
+    # print(slurm_script_for_all)
     
 def generate_slurm_script(file_name):
     slurm_script = '''#!/usr/local_rwth/bin/zsh
@@ -195,8 +201,10 @@ def generate_slurm_script(file_name):
 
 export LD_LIBRARY_PATH="/usr/local_rwth/sw/python/3.8.7/x86_64/lib/:${LD_LIBRARY_PATH}"
 srun /usr/local_rwth/sw/python/3.8.7/x86_64/bin/python3.8 '''
+    slurm_script += f'/home/hr546787/Code_Parser/test/{file_name}.py\n'
+    slurm_script += 'sacct -j $SLURM_JOB_ID --format=JobID,Start,End,Elapsed > ${SLURM_JOB_ID}_job_times.log'
     with open(f'test/{file_name}.sh', 'w') as f:
-        f.write(slurm_script + f'/home/hr546787/Code_Parser/test/{file_name}.py')
+        f.write(slurm_script)
 
 
 job_index = 0
@@ -454,7 +462,7 @@ def process_node(node, if_targets, else_targets):
     return new_node
 
 if __name__ == "__main__":
-    file_path = "test/test.py"
+    file_path = "test/main.py"
     parse_code(file_path)
     generate_scripts(assign_nodes)
     header = f'''#!/bin/bash

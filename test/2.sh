@@ -1,8 +1,6 @@
 #!/usr/local_rwth/bin/zsh
-#SBATCH --mem-per-cpu=6G
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --ntasks-per-node=1
+#SBATCH --job-name=2
+#SBATCH --output=/dev/null
 
-export LD_LIBRARY_PATH="/usr/local_rwth/sw/python/3.8.7/x86_64/lib/:${LD_LIBRARY_PATH}"
-srun /usr/local_rwth/sw/python/3.8.7/x86_64/bin/python3.8 /home/hr546787/Code_Parser/test/2.py
+srun /rwthfs/rz/cluster/home/hr546787/Code_Parser/new_env/bin/python /home/hr546787/Code_Parser/test/2.py $1 $2 $3
+sacct -j $SLURM_JOB_ID --format=JobID,Start,End,Elapsed > ${SLURM_JOB_ID}_${job_index}_log.log
