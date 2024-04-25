@@ -41,7 +41,7 @@ def read_and_process_code(file_path):
     return source_code
 
 # Example usage
-source_code = read_and_process_code("/Users/pingwan/Desktop/Thesis_Project/Code_Parser/test/main.py")
+source_code = read_and_process_code("test/main.py")
 
 import_list, control_flow_list = extract_nodes(source_code)
 
@@ -342,7 +342,7 @@ print(processed_list)
 print(dependency_map)
 slurm_script = generate_trigger_slurm_script(processed_list, dependency_map)
 save_script_to_file(slurm_script, 'test/trigger_slurm_script.sh')
-generate_slurm_scripts(processed_list, "/Users/pingwan/Desktop/Thesis_Project/Code_Parser/test")
+generate_slurm_scripts(processed_list, "test")
 
 def generate_python_scripts(dependency_list, import_list, control_flow_list, output_dir):
     os.makedirs(output_dir, exist_ok=True)  # Ensure the output directory exists
