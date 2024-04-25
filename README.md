@@ -23,9 +23,18 @@ These instructions will help you get a copy of the project up and running on you
 
 To parse the `main.py` script from the `test` folder and generate the required outputs, including Python and shell scripts executable on a slurm system, follow the steps below:
 
-1. Navigate to the root directory of the project:
+1. Navigate to the root directory of the project.
 
-2. Execute the `parse.py` script:
+2. Execute the `parse.py` script. To execute the parse.py script with the necessary modifications, follow these steps:
+   
+   2.1 Modify the Python Interpreter Path: You will need to update the path to your Python interpreter on line 329 of the parse.py script. Locate the line where the Python command is set and replace the existing path with the path to the Python interpreter on your system. For example, if your Python interpreter is located at /usr/bin/python3, you should change the line to reflect this path.
+   #### Before
+   base_command = "/path/to/old/python /path/to/your/script.py"
+
+   #### After
+   base_command = "/usr/bin/python3 /path/to/your/script.py"
+  
+   2.2 Update SLURM Environment Addresses: On lines 360 and 381, update the addresses to match those in your SLURM environment. You'll need to ensure these paths are accessible and correct within the SLURM job context.
 
 3. After execution, check the output files (code blocks and shell scripts) in the `test` directory.
 
