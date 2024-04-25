@@ -3,7 +3,6 @@ import pandas as pd
 from pm4py.objects.conversion.log import converter as log_converter
 from pm4py.algo.discovery.alpha import algorithm as alpha_miner
 from pm4py.visualization.petri_net import visualizer as pn_visualizer
-from pm4py.statistics.traces.generic.log import case_statistics
 from pm4py.util import constants
 from pm4py.statistics.start_activities.log import get as start_activities
 from pm4py.statistics.end_activities.log import get as end_activities
@@ -29,14 +28,14 @@ case_durations = []
 for case_index in [0, 1, 2, 3, 4]:
     if case_index < len(event_log):
         case = event_log[case_index]
-        case_duration = case[-1][constants.PARAMETER_CONSTANT_TIMESTAMP_KEY] - case[0][constants.PARAMETER_CONSTANT_TIMESTAMP_KEY]
+        case_duration = case[-1]['time:timestamp'] - case[0]['time:timestamp']
         case_durations.append(case_duration)
         print(f"Case {case.attributes['concept:name']} duration: {case_duration}")
 
 # Average case duration
 if case_durations:
-    average_duration = np.mean(case_durations)
-    print(f"Average Case Duration: {average_duration}")
+    average_duration = np.mean([d.total_seconds() for d in case_durations])
+    print(f"Average Case Duration: {average_duration / 3600} hours")  # converting seconds to hours for readability
 
 # Additional Task 2: Identify and print all unique activities (limited to first 5 traces)
 unique_activities = set()
