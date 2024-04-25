@@ -36,8 +36,6 @@ To parse the `main.py` script from the `test` folder and generate the required o
   
    2.2 Update SLURM Environment Addresses: On lines 360 and 381, update the addresses to match those in your SLURM environment. You'll need to ensure these paths are accessible and correct within the SLURM job context.
 
-Modify the Python Interpreter Path: You will need to update the path to your Python interpreter on line 329 of the parse.py script. Locate the line where the Python command is set and replace the existing path with the path to the Python interpreter on your system. For example, if your Python interpreter is located at /usr/bin/python3, you should change the line to reflect this path.
-
 3. After execution, check the output files (code blocks and shell scripts) in the `test` directory.
 
 4. To perform testing with different input files, replace the contents of `main.py` in the `test` folder with contents from any of the five provided test files located in the `source_code_for_testing` directory.
