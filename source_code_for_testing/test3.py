@@ -26,6 +26,7 @@ pn_visualizer.view(gviz)
 # Additional Task 1: Calculate duration for each case (limited to first 5 cases for example)
 case_durations = []
 for case_index in [0, 1, 2, 3, 4]:
+    case_index = int(case_index)
     if case_index < len(event_log):
         case = event_log[case_index]
         case_duration = case[-1]['time:timestamp'] - case[0]['time:timestamp']
@@ -40,6 +41,7 @@ if case_durations:
 # Additional Task 2: Identify and print all unique activities (limited to first 5 traces)
 unique_activities = set()
 for trace_index in [0, 1, 2, 3, 4]:
+    trace_index = int(trace_index)
     if trace_index < len(event_log):
         trace = event_log[trace_index]
         for event in trace:
@@ -49,6 +51,7 @@ print("Unique Activities:", unique_activities)
 # Additional Task 3: Count and print frequency of each activity (limited to first 5 traces)
 activity_frequency = {}
 for trace_index in [0, 1, 2, 3, 4]:
+    trace_index = int(trace_index)
     if trace_index < len(event_log):
         trace = event_log[trace_index]
         for event in trace:

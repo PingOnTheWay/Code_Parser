@@ -10,6 +10,7 @@ product_map = {"apples": 1, "oranges": 2, "bananas": 3, "product4": 4, "product5
 transaction_type_map = {"in": 1, "out": 0}  
 
 for product_id in [1, 2, 3, 4, 5]:
+    product_id = int(product_id)
     qty = 10  
     transaction_type = (product_id % 2) 
     

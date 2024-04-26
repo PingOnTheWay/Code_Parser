@@ -131,6 +131,30 @@ def extract_variables_from_code(tree):
                 extractor.visit(subnode)
     return extractor.variables, extractor.assignment_targets, orelse_variables
 
+# Create a visitor class to collect all ids on the left side of assignments
+class AssignmentCollector(ast.NodeVisitor):
+    def __init__(self):
+        self.ids = set()
+
+    def visit_Assign(self, node):
+        # Traverse all targets and extract ids
+        for target in node.targets:
+            self.handle_target(target)
+        self.generic_visit(node)
+
+    def handle_target(self, target):
+        # Handle Name node
+        if isinstance(target, ast.Name):
+            self.ids.add(target.id)
+        # Handle complex targets like tuples or lists
+        elif isinstance(target, (ast.Tuple, ast.List)):
+            for elt in target.elts:
+                self.handle_target(elt)
+        # Handle subscript used for dictionary keys or list indexing
+        elif isinstance(target, ast.Subscript):
+            if isinstance(target.value, ast.Name):
+                self.ids.add(target.value.id)  # Collect the variable name of the subscript
+
 def parse_assign_node(assign_node, index):
     is_for = False
     # Parse targets
@@ -139,9 +163,12 @@ def parse_assign_node(assign_node, index):
         # print(ast.dump(assign_node))
         dependences, if_vars, orelse_vars = extract_variables_from_code(assign_node)
         dependences = list(dependences)
+        collector = AssignmentCollector()
+        collector.visit(assign_node)
         # print(dependences)
         if_vars |= orelse_vars
-        targets = list(if_vars)
+        collector.ids |= if_vars
+        targets = list(collector.ids)
     elif isinstance(assign_node, ast.Call):
         dependences = [arg.id for arg in assign_node.args if isinstance(arg, ast.Name)]
         dependences += [keyword.value.id if isinstance(keyword.value, ast.Name) else keyword.value.value for keyword in assign_node.keywords]
@@ -251,8 +278,7 @@ def process_dependencies(dependencies):
 def refine_dependencies(dependency_list):
     # Create a set to store all previously encountered targets
     all_previous_targets = set()
-    for entry in dependency_list:
-        print(entry['dependences'])
+
     # Traverse each element
     for entry in dependency_list:
         # Add the current element's targets to the global set
@@ -269,8 +295,7 @@ def refine_dependencies(dependency_list):
         
         # Update the set of previously encountered targets
         all_previous_targets.update(current_targets)
-    for entry in dependency_list:
-        print(entry['dependences'])
+
     return dependency_list
     
 def build_dependency_map(nodes):
@@ -301,12 +326,12 @@ def build_dependency_map(nodes):
                     if dep in previous_targets:
                         # If a dependency is found in an earlier element's targets, add that element's index to the dependency map
                         dependency_map[i].append(j)
-
     return  processed_list, dependency_map
 
 def generate_trigger_slurm_script(dependency_list, dependency_map):
     script_lines = ["#!/bin/bash", "\n#SBATCH --ntasks-per-node=1"]
     job_ids = []
+    job_map = defaultdict(list)
     fix = 0
 
     for index, item in enumerate(dependency_list):
@@ -318,17 +343,34 @@ def generate_trigger_slurm_script(dependency_list, dependency_map):
         if item.get('for') and item.get('iter'):
             # Handle for loop by creating multiple jobs
             for i, iter_val in enumerate(item['iter']):
-                dep_str = f"--dependency=afterok:{','.join(f'$JOB_ID_{d}' for d in dependencies)}" if dependencies else ""
+                dep_jobs = []
+                if dependencies:
+                    job_map[index].append(index + fix)
+                    dep_jobs = [job_ids[d] for d in dependencies]  
+                    for d in dependencies:
+                        if d in job_map:
+                            dep_jobs.extend(job_map[d])
+                            dep_jobs = list(set(dep_jobs))
+                dep_str = f"--dependency=afterok:{','.join(f'$JOB_ID_{d}' for d in dep_jobs)}" if dep_jobs else ""
                 command = f'{job_var}_{index + fix}=$({base_command} {dep_str} /home/hr546787/Code_Parser/test/{index}.sh {sign} {index} {iter_val})'
                 fix += 1
                 script_lines.append(command)
+            fix -= 1
         else:
             # Normal job submission
-            dep_str = f"--dependency=afterok:{','.join(f'$JOB_ID_{d}' for d in dependencies)}" if dependencies else ""
+            dep_jobs = []
+            if dependencies:
+                job_map[index].append(index + fix)
+                dep_jobs = [job_ids[d] for d in dependencies]  
+                for d in dependencies:
+                    if d in job_map:
+                        dep_jobs.extend(job_map[d])
+                        dep_jobs = list(set(dep_jobs))
+            dep_str = f"--dependency=afterok:{','.join(f'$JOB_ID_{d}' for d in dep_jobs)}" if dep_jobs else ""
             command = f'{job_var}_{index + fix}=$({base_command} {dep_str} /home/hr546787/Code_Parser/test/{index}.sh {sign} NoDependency {index})'
             script_lines.append(command)
 
-        job_ids.append(job_var)
+        job_ids.append(index + fix)
     script_lines.append(f"sacct -j $SLURM_JOB_ID --format=JobID,Start,End,Elapsed > /home/hr546787/Code_Parser/results/test1/trigger_{sign}_log.log\n")
     return "\n".join(script_lines)
 
@@ -404,12 +446,14 @@ def generate_python_scripts(dependency_list, import_list, control_flow_list, out
                 script_content += astor.to_source(node)
 
         # Handle targets, if any, save them
+        initial_targets = ''
         if item['targets']:
             for target in item['targets']:
                 script_content += f"with open(f'/home/hr546787/Code_Parser/pkl/{target}_{{sign}}.pkl', 'wb') as f:\n"
                 script_content += f"    pickle.dump({target}, f)\n"
+                initial_targets += f"{target} = None\n"
 
         # Save the generated script to a file
         with open(os.path.join(output_dir, f"{index}.py"), 'w') as file:
-            file.write(script_content)
+            file.write(initial_targets + script_content)
 generate_python_scripts(processed_list, import_list, control_flow_list, "test/")

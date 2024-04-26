@@ -28,6 +28,7 @@ pn_visualizer.view(gviz)
 activity_durations = {}
 activity_counts = {}
 for trace_index in [0, 1, 2, 3, 4]:  # Static loop structure
+    trace_index = int(trace_index)
     if trace_index < len(event_log):
         trace = event_log[trace_index]
         for event_index in range(len(trace) - 1):
