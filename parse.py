@@ -35,9 +35,6 @@ def read_and_process_code(file_path):
     with open(file_path, 'r') as file:
         source_code = file.read()
 
-    print("Read source code:")
-    print(source_code)
-
     return source_code
 
 # Example usage
@@ -61,7 +58,7 @@ class ExtractVariables(ast.NodeVisitor):
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Load):
             # Check if it is a function
-            if (isinstance(node.parent, ast.Call) and node.parent.func == node):
+            if ((isinstance(node.parent, ast.Call) and node.parent.func == node)):
                 return
             if node.id not in self.assignment_targets:
                 self.variables.add(node.id)
@@ -86,8 +83,25 @@ class IDCollector(ast.NodeVisitor):
         self.ids = set()
 
     def visit_Name(self, node):
-        self.ids.add(node.id)
+        if not self._is_attribute_value(node) or isinstance(node.ctx, ast.Load):
+            self.ids.add(node.id)
         self.generic_visit(node)
+    
+    def visit_Call(self, node):
+        # handle args
+        for arg in node.args:
+            self.visit(arg)
+        # handle keywords
+        for keyword in node.keywords:
+            self.visit(keyword.value)
+        # jump over func id
+        self.generic_visit(node.func)
+    
+    def _is_attribute_value(self, node):
+        # 检查这个节点是否是某个 ast.Attribute 的 value
+        parent = getattr(node, 'parent', None)
+        return isinstance(parent, ast.Attribute) and parent.value is node
+    
         
 def extract_ids_from_nodes(node):
     collector = IDCollector()
@@ -121,8 +135,11 @@ def parse_assign_node(assign_node, index):
     is_for = False
     # Parse targets
     if isinstance(assign_node, (ast.While, ast.If)):
+        # print("While or If")
+        # print(ast.dump(assign_node))
         dependences, if_vars, orelse_vars = extract_variables_from_code(assign_node)
         dependences = list(dependences)
+        # print(dependences)
         if_vars |= orelse_vars
         targets = list(if_vars)
     elif isinstance(assign_node, ast.Call):
@@ -133,24 +150,30 @@ def parse_assign_node(assign_node, index):
         iter_node = assign_node.iter
         if isinstance(iter_node, ast.List):
             values = [const.value for const in iter_node.elts if isinstance(const, ast.Constant)]
-        print(values)
-        print(ast.dump(assign_node.target))
-        print(assign_node.target.id)
+        # print(values)
+        # print(ast.dump(assign_node.target))
+        # print(assign_node.target.id)
         is_for = True
         targets = []
         dependences = []
         for child in assign_node.body:
+            # print("Child")
+            # print(ast.dump(child))
             targets += parse_assign_node(child, index)["targets"]
             dependences += parse_assign_node(child, index)["dependences"]
+            # print(dependences)
+            # print("")
         dependences = [x for x in dependences if x != assign_node.target.id]
     elif isinstance(assign_node, ast.Expr):
-        print(ast.dump(assign_node))
-        print("Expr")
+        # print(ast.dump(assign_node))
+        # print("Expr")
         targets = []
         dependences = []
         targets += parse_assign_node(assign_node.value, index)["targets"]
         dependences += parse_assign_node(assign_node.value, index)["dependences"]
     else:
+        # print("Assign")
+        # print(ast.dump(assign_node))
         targets=[]
         for target in assign_node.targets:
             if isinstance(target, ast.Name):
@@ -163,9 +186,13 @@ def parse_assign_node(assign_node, index):
         
         if isinstance(assign_node.value, ast.Call):
             dependences = [arg.id for arg in assign_node.value.args if isinstance(arg, ast.Name)]
-            dependences += [keyword.value.id if isinstance(keyword.value, ast.Name) else keyword.value.value for keyword in assign_node.value.keywords]
+            dependences += [keyword.value.id for keyword in assign_node.value.keywords if isinstance(keyword.value, ast.Name)]
         elif isinstance(assign_node.value, ast.Name):
-            dependences.append(assign_node.value.id)    
+            dependences.append(assign_node.value.id) 
+        else:
+            collector = IDCollector()
+            collector.visit(assign_node.value)
+            dependences = collector.ids
     return {
         'targets': list(set(targets)),
         'dependences': list(set([item for item in dependences if not isinstance(item, (int, float))])),
@@ -224,7 +251,8 @@ def process_dependencies(dependencies):
 def refine_dependencies(dependency_list):
     # Create a set to store all previously encountered targets
     all_previous_targets = set()
-    
+    for entry in dependency_list:
+        print(entry['dependences'])
     # Traverse each element
     for entry in dependency_list:
         # Add the current element's targets to the global set
@@ -233,7 +261,7 @@ def refine_dependencies(dependency_list):
         # Check the current element's dependences
         filtered_dependencies = [
             dep for dep in entry['dependences']
-            if not (dep in current_targets and dep not in all_previous_targets)
+            if dep in all_previous_targets  # Only keep dependences that have been encountered before
         ]
         
         # Update the current element's dependences
@@ -241,7 +269,8 @@ def refine_dependencies(dependency_list):
         
         # Update the set of previously encountered targets
         all_previous_targets.update(current_targets)
-        
+    for entry in dependency_list:
+        print(entry['dependences'])
     return dependency_list
     
 def build_dependency_map(nodes):
