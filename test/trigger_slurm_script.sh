@@ -1,27 +1,9 @@
 #!/bin/bash
 
 #SBATCH --ntasks-per-node=1
-JOB_ID_0=$(sbatch --nodes=1 --ntasks=1 --parsable  /home/hr546787/Code_Parser/test/0.sh 186905 NoDependency 0)
-JOB_ID_1=$(sbatch --nodes=1 --ntasks=1 --parsable  /home/hr546787/Code_Parser/test/1.sh 186905 NoDependency 1)
-JOB_ID_2=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_1 /home/hr546787/Code_Parser/test/2.sh 186905 2 0)
-JOB_ID_3=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_1 /home/hr546787/Code_Parser/test/2.sh 186905 2 1)
-JOB_ID_4=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_1 /home/hr546787/Code_Parser/test/2.sh 186905 2 2)
-JOB_ID_5=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_1 /home/hr546787/Code_Parser/test/2.sh 186905 2 3)
-JOB_ID_6=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_1 /home/hr546787/Code_Parser/test/2.sh 186905 2 4)
-JOB_ID_7=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_1 /home/hr546787/Code_Parser/test/3.sh 186905 NoDependency 3)
-JOB_ID_8=$(sbatch --nodes=1 --ntasks=1 --parsable  /home/hr546787/Code_Parser/test/4.sh 186905 NoDependency 4)
-JOB_ID_9=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_8 /home/hr546787/Code_Parser/test/5.sh 186905 5 0)
-JOB_ID_10=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_8 /home/hr546787/Code_Parser/test/5.sh 186905 5 1)
-JOB_ID_11=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_8 /home/hr546787/Code_Parser/test/5.sh 186905 5 2)
-JOB_ID_12=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_8 /home/hr546787/Code_Parser/test/5.sh 186905 5 3)
-JOB_ID_13=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_8 /home/hr546787/Code_Parser/test/5.sh 186905 5 4)
-JOB_ID_14=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_8 /home/hr546787/Code_Parser/test/6.sh 186905 NoDependency 6)
-JOB_ID_15=$(sbatch --nodes=1 --ntasks=1 --parsable  /home/hr546787/Code_Parser/test/7.sh 186905 NoDependency 7)
-JOB_ID_16=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_15 /home/hr546787/Code_Parser/test/8.sh 186905 8 0)
-JOB_ID_17=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_15 /home/hr546787/Code_Parser/test/8.sh 186905 8 1)
-JOB_ID_18=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_15 /home/hr546787/Code_Parser/test/8.sh 186905 8 2)
-JOB_ID_19=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_15 /home/hr546787/Code_Parser/test/8.sh 186905 8 3)
-JOB_ID_20=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_15 /home/hr546787/Code_Parser/test/8.sh 186905 8 4)
-JOB_ID_21=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_15,$JOB_ID_16,$JOB_ID_17,$JOB_ID_18,$JOB_ID_19,$JOB_ID_20 /home/hr546787/Code_Parser/test/9.sh 186905 NoDependency 9)
-JOB_ID_22=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0 /home/hr546787/Code_Parser/test/10.sh 186905 NoDependency 10)
-sacct -j $SLURM_JOB_ID --format=JobID,Start,End,Elapsed > /home/hr546787/Code_Parser/results/test1/trigger_186905_log.log
+JOB_ID_0=$(sbatch --nodes=1 --ntasks=1 --parsable  /home/hr546787/Code_Parser/test/0.sh 551156 NoBranch 0)
+JOB_ID_1=$(sbatch --nodes=1 --ntasks=1 --parsable  /home/hr546787/Code_Parser/test/1.sh 551156 NoBranch 1)
+JOB_ID_2=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0 /home/hr546787/Code_Parser/test/2.sh 551156 0 0.2)
+JOB_ID_3=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0 /home/hr546787/Code_Parser/test/2.sh 551156 1 0.4)
+JOB_ID_4=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0 /home/hr546787/Code_Parser/test/2.sh 551156 2 0.7)
+sacct -j $SLURM_JOB_ID --format=JobID,Start,End,Elapsed > /home/hr546787/Code_Parser/results/test1/551156_trigger.log

@@ -1,7 +1,7 @@
 activity_frequency = None
-trace_index = None
 activity = None
 trace = None
+trace_index = None
 import pm4py
 
 import pandas as pd
@@ -40,9 +40,9 @@ if trace_index < len(event_log):
         activity_frequency[activity] += 1
 with open(f'/home/hr546787/Code_Parser/pkl/activity_frequency_{sign}.pkl', 'wb') as f:
     pickle.dump(activity_frequency, f)
-with open(f'/home/hr546787/Code_Parser/pkl/trace_index_{sign}.pkl', 'wb') as f:
-    pickle.dump(trace_index, f)
 with open(f'/home/hr546787/Code_Parser/pkl/activity_{sign}.pkl', 'wb') as f:
     pickle.dump(activity, f)
 with open(f'/home/hr546787/Code_Parser/pkl/trace_{sign}.pkl', 'wb') as f:
     pickle.dump(trace, f)
+with open(f'/home/hr546787/Code_Parser/pkl/trace_index_{sign}.pkl', 'wb') as f:
+    pickle.dump(trace_index, f)

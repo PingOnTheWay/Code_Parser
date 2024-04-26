@@ -37,8 +37,26 @@ def read_and_process_code(file_path):
 
     return source_code
 
-# Example usage
-source_code = read_and_process_code("test/main.py")
+# Prompt the user to enter the file path
+file_path = input("Please enter the file path: ")
+
+# Extract the file name using os.path.basename()
+file_name = os.path.basename(file_path)
+
+# Remove the file extension to keep only the base name
+folder_name = os.path.splitext(file_name)[0]
+
+# Define the base directory as the 'results' folder in the current working directory
+base_dir = os.path.join(os.getcwd(), 'results')
+# Ensure the 'results' directory exists
+os.makedirs(base_dir, exist_ok=True)
+# Create the specific folder for the file name under the results directory
+folder_path = os.path.join(base_dir, folder_name)
+os.makedirs(folder_path, exist_ok=True)
+
+# Print the path of the newly created folder
+print(f"The result folder has been created at: {folder_path}")
+source_code = read_and_process_code(file_path)
 
 import_list, control_flow_list = extract_nodes(source_code)
 
@@ -342,6 +360,7 @@ def generate_trigger_slurm_script(dependency_list, dependency_map):
         # Check if this is a 'for' loop with iterables
         if item.get('for') and item.get('iter'):
             # Handle for loop by creating multiple jobs
+            branch_id = 0
             for i, iter_val in enumerate(item['iter']):
                 dep_jobs = []
                 if dependencies:
@@ -352,9 +371,11 @@ def generate_trigger_slurm_script(dependency_list, dependency_map):
                             dep_jobs.extend(job_map[d])
                             dep_jobs = list(set(dep_jobs))
                 dep_str = f"--dependency=afterok:{','.join(f'$JOB_ID_{d}' for d in dep_jobs)}" if dep_jobs else ""
-                command = f'{job_var}_{index + fix}=$({base_command} {dep_str} /home/hr546787/Code_Parser/test/{index}.sh {sign} {index} {iter_val})'
+                command = f'{job_var}_{index + fix}=$({base_command} {dep_str} /home/hr546787/Code_Parser/test/{index}.sh {sign} {branch_id} {iter_val})'
+                branch_id += 1
                 fix += 1
                 script_lines.append(command)
+            branch_id = 0
             fix -= 1
         else:
             # Normal job submission
@@ -367,11 +388,11 @@ def generate_trigger_slurm_script(dependency_list, dependency_map):
                         dep_jobs.extend(job_map[d])
                         dep_jobs = list(set(dep_jobs))
             dep_str = f"--dependency=afterok:{','.join(f'$JOB_ID_{d}' for d in dep_jobs)}" if dep_jobs else ""
-            command = f'{job_var}_{index + fix}=$({base_command} {dep_str} /home/hr546787/Code_Parser/test/{index}.sh {sign} NoDependency {index})'
+            command = f'{job_var}_{index + fix}=$({base_command} {dep_str} /home/hr546787/Code_Parser/test/{index}.sh {sign} NoBranch {index})'
             script_lines.append(command)
 
         job_ids.append(index + fix)
-    script_lines.append(f"sacct -j $SLURM_JOB_ID --format=JobID,Start,End,Elapsed > /home/hr546787/Code_Parser/results/test1/trigger_{sign}_log.log\n")
+    script_lines.append(f"sacct -j $SLURM_JOB_ID --format=JobID,Start,End,Elapsed > /home/hr546787/Code_Parser/results/{folder_name}/{sign}_trigger.log\n")
     return "\n".join(script_lines)
 
 def save_script_to_file(script_content, file_path):
@@ -403,7 +424,7 @@ def create_slurm_script(directory, filename, item, job_index):
         file.write(f"{command}\n")
         
         # Add SACCT command
-        file.write("sacct -j $SLURM_JOB_ID --format=JobID,Start,End,Elapsed > /home/hr546787/Code_Parser/results/test1/${SLURM_JOB_ID}_$1_log.log\n")
+        file.write("sacct -j $SLURM_JOB_ID --format=JobID,Start,End,Elapsed > /home/hr546787/Code_Parser/results/" + f"{folder_name}" +"/$1_${SLURM_JOB_NAME}$2.log\n")
 
 
 
