@@ -1,9 +1,9 @@
 aligned_traces = None
+tbr_result = None
 lang_fit = None
 fm = None
 im = None
 net = None
-tbr_result = None
 import pm4py
 import re, os, pickle, sys
 sign = sys.argv[1]
@@ -18,6 +18,8 @@ aligned_traces = pm4py.conformance_diagnostics_alignments(log, net, im, fm)
 lang_fit = pm4py.fitness_token_based_replay(log, net, im, fm)
 with open(f'/home/hr546787/Code_Parser/pkl/aligned_traces_{sign}.pkl', 'wb') as f:
     pickle.dump(aligned_traces, f)
+with open(f'/home/hr546787/Code_Parser/pkl/tbr_result_{sign}.pkl', 'wb') as f:
+    pickle.dump(tbr_result, f)
 with open(f'/home/hr546787/Code_Parser/pkl/lang_fit_{sign}.pkl', 'wb') as f:
     pickle.dump(lang_fit, f)
 with open(f'/home/hr546787/Code_Parser/pkl/fm_{sign}.pkl', 'wb') as f:
@@ -26,5 +28,3 @@ with open(f'/home/hr546787/Code_Parser/pkl/im_{sign}.pkl', 'wb') as f:
     pickle.dump(im, f)
 with open(f'/home/hr546787/Code_Parser/pkl/net_{sign}.pkl', 'wb') as f:
     pickle.dump(net, f)
-with open(f'/home/hr546787/Code_Parser/pkl/tbr_result_{sign}.pkl', 'wb') as f:
-    pickle.dump(tbr_result, f)
