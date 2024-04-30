@@ -1,9 +1,27 @@
 #!/bin/bash
 
 #SBATCH --ntasks-per-node=1
-JOB_ID_0=$(sbatch --nodes=1 --ntasks=1 --parsable  /home/hr546787/Code_Parser/test/0.sh 452795 NoBranch 0)
-JOB_ID_1=$(sbatch --nodes=1 --ntasks=1 --parsable  /home/hr546787/Code_Parser/test/1.sh 452795 NoBranch 1)
-JOB_ID_2=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0 /home/hr546787/Code_Parser/test/2.sh 452795 0 0.2)
-JOB_ID_3=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0 /home/hr546787/Code_Parser/test/2.sh 452795 1 0.4)
-JOB_ID_4=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0 /home/hr546787/Code_Parser/test/2.sh 452795 2 0.7)
-sacct -j $SLURM_JOB_ID --format=JobID,Start,End,Elapsed > /home/hr546787/Code_Parser/results/test1/452795_trigger.log
+JOB_ID_0=$(sbatch --nodes=1 --ntasks=1 --parsable  /home/hr546787/Code_Parser/test/0.sh 742910 NoBranch 0)
+JOB_ID_1=$(sbatch --nodes=1 --ntasks=1 --parsable  /home/hr546787/Code_Parser/test/1.sh 742910 NoBranch 1)
+JOB_ID_2=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_1 /home/hr546787/Code_Parser/test/2.sh 742910 0 0)
+JOB_ID_3=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_1 /home/hr546787/Code_Parser/test/2.sh 742910 1 1)
+JOB_ID_4=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_1 /home/hr546787/Code_Parser/test/2.sh 742910 2 2)
+JOB_ID_5=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_1 /home/hr546787/Code_Parser/test/2.sh 742910 3 3)
+JOB_ID_6=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_1 /home/hr546787/Code_Parser/test/2.sh 742910 4 4)
+JOB_ID_7=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_1 /home/hr546787/Code_Parser/test/3.sh 742910 NoBranch 3)
+JOB_ID_8=$(sbatch --nodes=1 --ntasks=1 --parsable  /home/hr546787/Code_Parser/test/4.sh 742910 NoBranch 4)
+JOB_ID_9=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_8 /home/hr546787/Code_Parser/test/5.sh 742910 0 0)
+JOB_ID_10=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_8 /home/hr546787/Code_Parser/test/5.sh 742910 1 1)
+JOB_ID_11=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_8 /home/hr546787/Code_Parser/test/5.sh 742910 2 2)
+JOB_ID_12=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_8 /home/hr546787/Code_Parser/test/5.sh 742910 3 3)
+JOB_ID_13=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_8 /home/hr546787/Code_Parser/test/5.sh 742910 4 4)
+JOB_ID_14=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_8 /home/hr546787/Code_Parser/test/6.sh 742910 NoBranch 6)
+JOB_ID_15=$(sbatch --nodes=1 --ntasks=1 --parsable  /home/hr546787/Code_Parser/test/7.sh 742910 NoBranch 7)
+JOB_ID_16=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_15 /home/hr546787/Code_Parser/test/8.sh 742910 0 0)
+JOB_ID_17=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_15 /home/hr546787/Code_Parser/test/8.sh 742910 1 1)
+JOB_ID_18=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_15 /home/hr546787/Code_Parser/test/8.sh 742910 2 2)
+JOB_ID_19=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_15 /home/hr546787/Code_Parser/test/8.sh 742910 3 3)
+JOB_ID_20=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0,$JOB_ID_15 /home/hr546787/Code_Parser/test/8.sh 742910 4 4)
+JOB_ID_21=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_15,$JOB_ID_16,$JOB_ID_17,$JOB_ID_18,$JOB_ID_19,$JOB_ID_20 /home/hr546787/Code_Parser/test/9.sh 742910 NoBranch 9)
+JOB_ID_22=$(sbatch --nodes=1 --ntasks=1 --parsable --dependency=afterok:$JOB_ID_0 /home/hr546787/Code_Parser/test/10.sh 742910 NoBranch 10)
+sacct -j $SLURM_JOB_ID --format=JobID,Start,End,Elapsed > /home/hr546787/Code_Parser/results/test3/742910_trigger.log

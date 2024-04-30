@@ -1,4 +1,4 @@
-case_durations = None
+activity_frequency = None
 import pm4py
 
 import pandas as pd
@@ -20,6 +20,6 @@ from datetime import timedelta
 import numpy as np
 import re, os, pickle, sys
 sign = sys.argv[1]
-case_durations = []
-with open(f'/home/hr546787/Code_Parser/pkl/case_durations_{sign}.pkl', 'wb') as f:
-    pickle.dump(case_durations, f)
+activity_frequency = {}
+with open(f'/home/hr546787/Code_Parser/pkl/activity_frequency_{sign}.pkl', 'wb') as f:
+    pickle.dump(activity_frequency, f)

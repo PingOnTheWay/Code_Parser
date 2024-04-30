@@ -1,4 +1,4 @@
-case_durations = None
+average_duration = None
 import pm4py
 
 import pandas as pd
@@ -20,6 +20,11 @@ from datetime import timedelta
 import numpy as np
 import re, os, pickle, sys
 sign = sys.argv[1]
-case_durations = []
-with open(f'/home/hr546787/Code_Parser/pkl/case_durations_{sign}.pkl', 'wb') as f:
-    pickle.dump(case_durations, f)
+with open(f'/home/hr546787/Code_Parser/pkl/case_durations_{sign}.pkl', 'rb') as f:
+    case_durations = pickle.load(f)
+
+if case_durations:
+    average_duration = np.mean([d.total_seconds() for d in case_durations])
+    print(f'Average Case Duration: {average_duration / 3600} hours')
+with open(f'/home/hr546787/Code_Parser/pkl/average_duration_{sign}.pkl', 'wb') as f:
+    pickle.dump(average_duration, f)
